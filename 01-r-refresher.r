@@ -253,9 +253,12 @@ summarize(destinations,
 )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # forcing to use a command from a specific package
 # write package:write command 
 =======
+=======
+>>>>>>> simonmunzert/master
 # also helpful: apply functions to one or more columns
 ?summarize_each
 
@@ -682,6 +685,7 @@ gauss(100)
 
 
 
+<<<<<<< HEAD
 
 # ************************************************
 # EXERCISE: FUNCTIONS ----------------------------
@@ -695,6 +699,15 @@ gauss(100)
 # 3. Identify the class of every column vector!
 sapply(flights, class)
 =======
+# 2. program a function normalize() that produces normalizes a numeric vector x to mean(x) = 0 and sd(x) = 1!
+>>>>>>> simonmunzert/master
+=======
+
+# ************************************************
+# EXERCISE: FUNCTIONS ----------------------------
+
+# 1. program a function ultimateAnswer() that always returns the number 42!
+
 # 2. program a function normalize() that produces normalizes a numeric vector x to mean(x) = 0 and sd(x) = 1!
 >>>>>>> simonmunzert/master
 
