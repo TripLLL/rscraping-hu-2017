@@ -137,6 +137,7 @@ mtcars_stata <- read_dta("data/stata/mtcars.dta")
 # improves "cognitive performance" of code writers and readers
 # minimizes the need for local variables and function definitions
 # why name "magrittr"?
+# shortcut pipe cmd + shift + M
 browseURL("https://upload.wikimedia.org/wikipedia/en/b/b9/MagrittePipe.jpg")
 
 
