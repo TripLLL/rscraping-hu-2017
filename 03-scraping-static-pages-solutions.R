@@ -105,12 +105,118 @@ uastring <- "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 
 session <- html_session(url, user_agent(uastring))
 earthquake_search <- submit_form(session, earthquake_form)
 url_parsed <- read_html(earthquake_search)
+
 url_link <- url_parsed %>% html_nodes(".url a") %>% html_attr("href")
 url_parsed <- read_html(url_link) %>% html_nodes(".col-sm-4 li") %>% html_text()
 
+earthquakes_florence <- str_replace_all(url_parsed,"\\n","")
 
 
-## 9. The English Wikipedia features an entry with a list of political scientists around the world: https://en.wikipedia.org/wiki/List_of_political_scientists. Make use of this list to (1) download all articles of the listed scientists to your hard drive, (2) gather the network structure behind these articles and visualize it, and (3) identify the top 10 of political scientists that have the most links from other political scientists pointing to their page!
+## 9. The English Wikipedia features an entry with a list of political scientists around the world: https://en.wikipedia.org/wiki/List_of_political_scientists. Make use of this list to 
+
+# (1) download all articles of the listed scientists to your hard drive, 
+      # 1.1 create folder
+      tempwd <- "../data/wikipedia_polsci"
+      dir.create(tempwd)
+      setwd(tempwd)
+      
+      # 1.2 inspect page
+      url <- "https://en.wikipedia.org/wiki/List_of_political_scientists"
+      
+      # 1.3 retrieve links
+      html <- read_html(url)
+      anchors <- html_nodes(html, xpath = "//ul/li/a[1]")
+      links <- html_attr(anchors, "href")
+      links <- links[!is.na(links)]
+      
+      links_iffer <-
+            seq_along(links) >=
+            seq_along(links)[str_detect(links, "Alan_Abramowitz")] &
+            seq_along(links) <= 
+            seq_along(links)[str_detect(links, "John_Zaller")] &
+            str_detect(links, "/wiki/")
+      links_index <- seq_along(links)[links_iffer]
+      links <- links[links_iffer]
+      length(links)
+      
+      # 1.4 extract names
+      names <-    links %>% 
+                  basename %>% 
+                  sapply(., URLdecode) %>% 
+                  str_replace_all("_", " ") %>% 
+                  str_replace_all(" \\(.*\\)", "") %>% 
+                  str_trim
+      head(names)
+      
+      # 1.5 get personal wiki pages in folder
+      baseurl <- "http://en.wikipedia.org"
+      HTML <- list()
+      Fname <- str_c(basename(links), ".html")
+      URL <- str_c(baseurl, links)
+      # loop
+      for ( i in seq_along(links) ){
+            # url
+            url <- URL[i]
+            # fname
+            fname <- Fname[i]
+            # download
+            if ( !file.exists(fname) ) download.file(url, fname)
+            # read in files
+            HTML[[i]] <- read_html(fname)
+      }
+      
+# (2) gather the network structure behind these articles and visualize it
+
+      #identify links between political scientists
+      # loop preparation
+      connections <- data.frame(from=NULL, to=NULL)
+      # loop
+      for (i in seq_along(HTML)) {
+            pslinks <- html_attr(
+                  html_nodes(HTML[[i]], xpath="//p//a"), 
+                  # note: only look for links in p sections; otherwise too many links collected
+                  "href")
+            links_in_pslinks <- seq_along(links)[links %in% pslinks]
+            links_in_pslinks <- links_in_pslinks[links_in_pslinks!=i]
+            connections <- rbind(
+                  connections,
+                  data.frame(
+                        from=rep(i-1, length(links_in_pslinks)), # -1 for zero-indexing
+                        to=links_in_pslinks-1 # here too
+                  )
+            )
+      }
+     
+      # results
+      names(connections) <- c("from", "to")
+      head(connections)
+      
+      # make symmetrical
+      connections <- rbind(
+            connections,
+            data.frame(from=connections$to,
+                       to=connections$from)
+      )
+      connections <- connections[!duplicated(connections),]
+      
+# (3) identify the top 10 of political scientists that have the most links from other political scientists pointing to their page!
+      
+      ## step 6: visualize connections
+      connections$value <- 1
+      nodesDF <- data.frame(name = names, group = 1)
+      
+      network_out <- forceNetwork(Links = connections, Nodes = nodesDF, Source = "from", Target = "to", Value = "value", NodeID = "name", Group = "group", zoom = TRUE, opacityNoHover = 3)
+      
+      saveNetwork(network_out, file = 'connections.html')
+      browseURL("connections.html")
+      
+      
+      ## step 7: identify top nodes in data frame
+      nodesDF$id <- as.numeric(rownames(nodesDF)) - 1
+      connections_df <- merge(connections, nodesDF, by.x = "to", by.y = "id", all = TRUE)
+      to_count_df <- count(connections_df, name)
+      # answer
+      arrange(to_count_df, desc(n))
 
 
 
