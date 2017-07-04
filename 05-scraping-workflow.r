@@ -37,7 +37,6 @@ headlines <- session %>% html_nodes(".schlagzeilen-headline") %>%  html_text()
 
 
 # don't bombard server
-
 for (i in 1:length(urls_list)) {
   if (!file.exists(paste0(folder, names[i]))) {
     download.file(urls_list[i], destfile = paste0(folder, names[i]))
